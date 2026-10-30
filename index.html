@@ -1,2012 +1,753 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>University Homework & Course Progress Tracker</title>
-  <style>
-    /* ==========================================================================
-       1. CSS VARIABLES & THEME DEFINITIONS
-       ========================================================================== */
-    :root {
-      --bg-body: #f4f6fb;
-      --bg-surface: #ffffff;
-      --bg-subtle: #eef2f9;
-      --bg-hover: #e6ebf5;
-      --text-main: #1a202c;
-      --text-muted: #5a657d;
-      --border-color: #dbe2ef;
-      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05);
-      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-
-      /* Urgency & Status Colors */
-      --urgent-red-bg: #fff1f2;
-      --urgent-red-border: #f43f5e;
-      --urgent-red-text: #be123c;
-
-      --soon-orange-bg: #fffbeb;
-      --soon-orange-border: #f59e0b;
-      --soon-orange-text: #b45309;
-
-      --done-green-bg: #ecfdf5;
-      --done-green-border: #10b981;
-      --done-green-text: #047857;
-
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    [data-theme="dark"] {
-      --bg-body: #0f172a;
-      --bg-surface: #1e293b;
-      --bg-subtle: #283548;
-      --bg-hover: #334155;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-color: #334155;
-      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-      --primary: #60a5fa;
-      --primary-hover: #3b82f6;
-
-      --urgent-red-bg: rgba(244, 63, 94, 0.14);
-      --urgent-red-border: #fb7185;
-      --urgent-red-text: #fda4af;
-
-      --soon-orange-bg: rgba(245, 158, 11, 0.14);
-      --soon-orange-border: #fbbf24;
-      --soon-orange-text: #fde68a;
-
-      --done-green-bg: rgba(16, 185, 129, 0.14);
-      --done-green-border: #34d399;
-      --done-green-text: #6ee7b7;
-    }
-
-    /* ==========================================================================
-       2. BASE & RESET STYLES
-       ========================================================================== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      line-height: 1.5;
-      padding-bottom: 4rem;
-      transition: background-color var(--transition), color var(--transition);
-    }
-
-    button, input, select, textarea {
-      font-family: inherit;
-      font-size: 0.95rem;
-      color: inherit;
-    }
-
-    button {
-      cursor: pointer;
-      border: none;
-      background: none;
-      transition: all var(--transition);
-    }
-
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 1.25rem;
-    }
-
-    /* ==========================================================================
-       3. HEADER & TOP ACTION BAR
-       ========================================================================== */
-    .app-header {
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .header-inner {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .brand-group h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-group p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .header-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    /* Sync Status Pill */
-    .sync-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-    }
-
-    .sync-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #94a3b8;
-    }
-
-    .sync-badge.synced .sync-dot {
-      background: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-    }
-
-    .sync-badge.syncing .sync-dot {
-      background: #f59e0b;
-    }
-
-    .sync-badge.error .sync-dot {
-      background: #ef4444;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      padding: 0.5rem 0.9rem;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      font-size: 0.875rem;
-      border: 1px solid transparent;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #ffffff;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: var(--bg-subtle);
-      color: var(--text-main);
-      border-color: var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: var(--bg-hover);
-    }
-
-    .btn-sm {
-      padding: 0.35rem 0.65rem;
-      font-size: 0.8rem;
-    }
-
-    .btn-danger-outline {
-      color: var(--urgent-red-border);
-      border: 1px solid var(--border-color);
-      background: var(--bg-surface);
-    }
-
-    .btn-danger-outline:hover {
-      background: var(--urgent-red-bg);
-      border-color: var(--urgent-red-border);
-    }
-
-    /* ==========================================================================
-       4. SECTION LAYOUT & DASHBOARD
-       ========================================================================== */
-    .section {
-      margin-top: 1.75rem;
-    }
-
-    .section-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .section-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 1.4fr;
-      gap: 1.25rem;
-    }
-
-    @media (max-width: 920px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 1.25rem;
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Overall Progress & Metrics */
-    .overall-progress-box {
-      margin-bottom: 1.25rem;
-    }
-
-    .overall-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.5rem;
-    }
-
-    .overall-percent {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 12px;
-      background: var(--bg-subtle);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--primary);
-      border-radius: 999px;
-      transition: width 0.4s ease;
-    }
-
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .stat-pill {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 0.75rem 0.5rem;
-      text-align: center;
-    }
-
-    .stat-pill.overdue-active {
-      background: var(--urgent-red-bg);
-      border-color: var(--urgent-red-border);
-      color: var(--urgent-red-text);
-    }
-
-    .stat-pill.today-active {
-      background: var(--soon-orange-bg);
-      border-color: var(--soon-orange-border);
-      color: var(--soon-orange-text);
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 800;
-      line-height: 1.1;
-    }
-
-    .stat-label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-      font-weight: 600;
-    }
-
-    .stat-pill.overdue-active .stat-label,
-    .stat-pill.today-active .stat-label {
-      color: inherit;
-    }
-
-    /* Per-Course Progress Bars in Dashboard */
-    .course-progress-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0.85rem;
-    }
-
-    .course-mini-stat {
-      background: var(--bg-subtle);
-      border-radius: var(--radius-sm);
-      padding: 0.65rem 0.8rem;
-      border-left: 4px solid var(--primary);
-      cursor: pointer;
-      transition: transform var(--transition), background-color var(--transition);
-    }
-
-    .course-mini-stat:hover {
-      background: var(--bg-hover);
-      transform: translateY(-1px);
-    }
-
-    .course-mini-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-      gap: 0.5rem;
-    }
-
-    .course-mini-name {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .course-mini-count {
-      color: var(--text-muted);
-      font-size: 0.78rem;
-      flex-shrink: 0;
-    }
-
-    /* ==========================================================================
-       5. "WHAT TO DO NEXT" QUEUE & HOMEWORK ITEMS
-       ========================================================================== */
-    .next-up-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-    }
-
-    .hw-item {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.85rem;
-      padding: 0.85rem 1rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-left: 5px solid var(--primary);
-      border-radius: var(--radius-sm);
-      transition: all var(--transition);
-    }
-
-    .hw-item:hover {
-      box-shadow: var(--shadow-sm);
-    }
-
-    .hw-item.is-overdue {
-      background: var(--urgent-red-bg);
-      border-color: var(--urgent-red-border);
-      border-left-width: 6px;
-    }
-
-    .hw-item.is-due-soon {
-      background: var(--soon-orange-bg);
-      border-color: var(--soon-orange-border);
-      border-left-width: 6px;
-    }
-
-    .hw-item.is-done {
-      opacity: 0.72;
-      background: var(--bg-subtle);
-    }
-
-    .hw-item.is-done .hw-title {
-      text-decoration: line-through;
-      color: var(--text-muted);
-    }
-
-    .hw-left {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .hw-checkbox {
-      width: 1.2rem;
-      height: 1.2rem;
-      margin-top: 0.2rem;
-      accent-color: var(--primary);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .hw-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .hw-title-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.45rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .hw-title {
-      font-weight: 700;
-      font-size: 0.98rem;
-      word-break: break-word;
-    }
-
-    .hw-desc {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-      white-space: pre-line;
-      word-break: break-word;
-    }
-
-    .hw-meta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    /* Badges */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.15rem 0.5rem;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-    }
-
-    .badge-course {
-      color: #ffffff;
-    }
-
-    .badge-priority-High {
-      background: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-    }
-
-    .badge-priority-Medium {
-      background: rgba(245, 158, 11, 0.15);
-      color: #d97706;
-    }
-
-    .badge-priority-Low {
-      background: rgba(59, 130, 246, 0.15);
-      color: #3b82f6;
-    }
-
-    .badge-urgent {
-      background: var(--urgent-red-border);
-      color: #ffffff;
-    }
-
-    .badge-soon {
-      background: var(--soon-orange-border);
-      color: #ffffff;
-    }
-
-    .hw-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
-    .status-select {
-      padding: 0.25rem 0.45rem;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-surface);
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    /* ==========================================================================
-       6. FILTERS, TABS & COURSE CARDS VIEW
-       ========================================================================== */
-    .controls-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      background: var(--bg-surface);
-      padding: 0.85rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      margin-bottom: 1rem;
-    }
-
-    .filter-group {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .filter-group label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .filter-select, .search-input {
-      padding: 0.42rem 0.65rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-color);
-      background: var(--bg-subtle);
-      font-size: 0.85rem;
-    }
-
-    /* Course Navigation Tabs */
-    .course-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-bottom: 1.1rem;
-    }
-
-    .course-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.5rem 0.85rem;
-      border-radius: 999px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-    }
-
-    .course-tab:hover {
-      background: var(--bg-hover);
-      color: var(--text-main);
-    }
-
-    .course-tab.active {
-      background: var(--text-main);
-      color: var(--bg-surface);
-      border-color: var(--text-main);
-    }
-
-    .color-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-
-    /* Course Grid (All 7 Courses View) */
-    .courses-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .courses-grid.single-course-mode {
-      grid-template-columns: 1fr;
-    }
-
-    .course-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-top: 5px solid var(--primary);
-      border-radius: var(--radius-md);
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-
-    .course-card-header {
-      padding: 1rem 1.15rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .course-card-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.65rem;
-    }
-
-    .course-card-title {
-      font-size: 1.08rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .course-card-body {
-      padding: 1rem 1.15rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 1.75rem 1rem;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      background: var(--bg-subtle);
-      border: 1px dashed var(--border-color);
-      border-radius: var(--radius-sm);
-    }
-
-    /* ==========================================================================
-       7. CALENDAR / WEEK SCHEDULE VIEW
-       ========================================================================== */
-    .calendar-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .week-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.65rem;
-      margin-bottom: 1.25rem;
-    }
-
-    @media (max-width: 1024px) {
-      .week-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      }
-    }
-
-    .day-col {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 0.7rem;
-      min-height: 140px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-    }
-
-    .day-col.is-today {
-      border: 2px solid var(--primary);
-      background: var(--bg-subtle);
-    }
-
-    .day-header {
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.4rem;
-      margin-bottom: 0.2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .day-name {
-      font-weight: 700;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .day-date {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .cal-pill {
-      padding: 0.35rem 0.5rem;
-      border-radius: 6px;
-      background: var(--bg-subtle);
-      border-left: 3px solid var(--primary);
-      font-size: 0.76rem;
-      cursor: pointer;
-    }
-
-    .cal-pill.is-done {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
-
-    .cal-pill-title {
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .cal-pill-course {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-    }
-
-    .schedule-grouped-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .schedule-date-group {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 0.85rem 1rem;
-    }
-
-    .schedule-date-heading {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: var(--primary);
-    }
-
-    /* ==========================================================================
-       8. MODALS & MOBILE RESPONSIVENESS
-       ========================================================================== */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(2px);
-      display: none;
-      place-items: center;
-      padding: 1rem;
-      z-index: 100;
-    }
-
-    .modal-backdrop.open {
-      display: grid;
-    }
-
-    .modal {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 540px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 1.5rem;
-      box-shadow: var(--shadow-md);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .modal-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-    }
-
-    .form-grid {
-      display: grid;
-      gap: 0.9rem;
-    }
-
-    .form-row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-
-    .form-field label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
-
-    .form-field input,
-    .form-field select,
-    .form-field textarea {
-      width: 100%;
-      padding: 0.55rem 0.7rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background: var(--bg-subtle);
-    }
-
-    .form-field textarea {
-      resize: vertical;
-      min-height: 75px;
-    }
-
-    .form-error {
-      color: var(--urgent-red-border);
-      font-size: 0.82rem;
-      font-weight: 600;
-      display: none;
-    }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.6rem;
-      margin-top: 1.25rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .course-edit-row {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      margin-bottom: 0.65rem;
-    }
-
-    .course-edit-row input[type="color"] {
-      width: 42px;
-      height: 38px;
-      padding: 2px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      cursor: pointer;
-      background: var(--bg-subtle);
-    }
-
-    .course-edit-row input[type="text"] {
-      flex: 1;
-      padding: 0.48rem 0.7rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background: var(--bg-subtle);
-    }
-
-    /* Mobile Screen Optimizations */
-    @media (max-width: 640px) {
-      .container {
-        padding: 0 0.85rem;
-      }
-      .header-inner {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .header-actions {
-        justify-content: space-between;
-      }
-      .courses-grid {
-        grid-template-columns: 1fr;
-      }
-      .course-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 0.4rem;
-        -webkit-overflow-scrolling: touch;
-      }
-      .course-tab {
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-      .hw-item {
-        flex-direction: column;
-      }
-      .hw-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
-      .form-row-2 {
-        grid-template-columns: 1fr;
-      }
-      .filter-group {
-        width: 100%;
-      }
-      .filter-select, .search-input {
-        flex: 1;
-        width: 100%;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Homework Tracker</title>
+<style>
+  :root {
+    --bg: #f3f1ff;
+    --surface: #ffffff;
+    --subtle: #f0eefb;
+    --hover: #e7e3fa;
+    --text: #1e1b3a;
+    --muted: #6b6890;
+    --border: #e0dcf5;
+    --primary: #6d4aff;
+    --primary-2: #ff4fa3;
+    --red: #ef4444;   --red-bg: #fee2e2;
+    --orange: #f59e0b; --orange-bg: #fef3c7;
+    --green: #10b981;  --green-bg: #d1fae5;
+    --blue: #3b82f6;   --blue-bg: #dbeafe;
+    --shadow: 0 6px 20px rgba(80, 60, 160, .10);
+    --r: 16px;
+  }
+  [data-theme="dark"] {
+    --bg: #12101f; --surface: #1c1930; --subtle: #25213d; --hover: #2e2a4d;
+    --text: #f1efff; --muted: #a29fc7; --border: #342f58;
+    --primary: #8b6dff;
+    --red-bg: rgba(239,68,68,.18); --orange-bg: rgba(245,158,11,.18);
+    --green-bg: rgba(16,185,129,.18); --blue-bg: rgba(59,130,246,.18);
+    --shadow: 0 6px 20px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 3rem;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 1.1rem; }
+
+  /* ---------- Hero header ---------- */
+  .hero {
+    background: linear-gradient(120deg, #6d4aff 0%, #a23cff 50%, #ff4fa3 100%);
+    color: #fff; padding: 1.4rem 0 4.2rem;
+  }
+  .hero-top { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; }
+  .hero h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+  .hero p { opacity: .85; font-size: .9rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    padding: .5rem .95rem; border-radius: 999px; font-weight: 600; font-size: .85rem;
+    transition: transform .15s, background .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-white { background: #fff; color: #5a35e8; }
+  .btn-glass { background: rgba(255,255,255,.2); color: #fff; }
+  .btn-glass:hover { background: rgba(255,255,255,.3); }
+  .btn-primary { background: linear-gradient(120deg, var(--primary), var(--primary-2)); color: #fff; }
+  .btn-soft { background: var(--subtle); color: var(--text); border: 1px solid var(--border); }
+  .btn-soft:hover { background: var(--hover); }
+  .btn-danger { background: var(--red-bg); color: var(--red); }
+  .btn-sm { padding: .3rem .7rem; font-size: .78rem; }
+  .sync {
+    display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .75rem;
+    border-radius: 999px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.2);
+  }
+  .sync i { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; display: block; }
+  .sync.synced i { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.35); }
+  .sync.syncing i { background: #fbbf24; }
+  .sync.error i { background: #f87171; }
+
+  /* ---------- Stat cards ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem; margin-top: -3rem; }
+  @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--surface); border-radius: var(--r); padding: 1rem 1.1rem;
+    box-shadow: var(--shadow); border: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--accent, var(--primary)); }
+  .stat-label { font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .stat-value { font-size: 2rem; font-weight: 800; line-height: 1.15; color: var(--accent, var(--text)); }
+  .stat-sub { font-size: .78rem; color: var(--muted); }
+  .bar { height: 8px; border-radius: 99px; background: var(--subtle); overflow: hidden; margin-top: .4rem; }
+  .bar > span { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--primary)); transition: width .35s; }
+
+  /* ---------- Layout ---------- */
+  .layout { display: grid; grid-template-columns: 270px 1fr; gap: 1.2rem; margin-top: 1.4rem; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; box-shadow: var(--shadow); }
+  .panel-title { font-size: .78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .6rem; display: flex; justify-content: space-between; align-items: center; }
+  .side { position: sticky; top: .8rem; }
+  @media (max-width: 900px) { .side { position: static; } }
+
+  .course-row {
+    width: 100%; text-align: left; padding: .6rem .7rem; border-radius: 12px;
+    border: 2px solid transparent; margin-bottom: .35rem; background: var(--subtle); display: block;
+  }
+  .course-row:hover { background: var(--hover); }
+  .course-row.active { border-color: var(--c); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 20%, transparent); }
+  .course-row-top { display: flex; align-items: center; gap: .5rem; font-weight: 700; font-size: .88rem; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--c); flex: none; }
+  .course-row-top .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .course-row-top .cnt { font-size: .75rem; color: var(--muted); font-weight: 600; }
+
+  /* ---------- Toolbar ---------- */
+  .tabs { display: inline-flex; background: var(--surface); border: 1px solid var(--border); padding: 4px; border-radius: 999px; gap: 2px; }
+  .tab { padding: .4rem 1rem; border-radius: 999px; font-weight: 700; font-size: .84rem; color: var(--muted); }
+  .tab.active { background: linear-gradient(120deg, var(--primary), var(--primary-2)); color: #fff; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .filters select, .filters input {
+    padding: .42rem .7rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); font-size: .84rem;
+  }
+  @media (max-width: 640px) { .filters, .filters select, .filters input { width: 100%; } }
+
+  /* ---------- Tasks ---------- */
+  .group { margin-bottom: 1.2rem; }
+  .group-head { display: flex; align-items: center; gap: .5rem; font-weight: 800; font-size: .92rem; margin-bottom: .5rem; }
+  .pill { padding: .1rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 800; background: var(--subtle); color: var(--muted); }
+  .group.g-overdue .group-head { color: var(--red); }
+  .group.g-overdue .pill { background: var(--red-bg); color: var(--red); }
+  .group.g-today .group-head { color: var(--orange); }
+  .group.g-today .pill { background: var(--orange-bg); color: var(--orange); }
+
+  .task {
+    display: flex; gap: .8rem; align-items: flex-start; padding: .8rem .9rem;
+    background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--c);
+    border-radius: 14px; margin-bottom: .5rem; box-shadow: 0 2px 6px rgba(80,60,160,.05);
+  }
+  .task.overdue { background: var(--red-bg); border-left-color: var(--red); }
+  .task.soon { background: var(--orange-bg); border-left-color: var(--orange); }
+  .task.done { opacity: .6; }
+  .task.done .t-title { text-decoration: line-through; }
+  .task input[type=checkbox] { width: 1.25rem; height: 1.25rem; margin-top: .15rem; accent-color: var(--primary); flex: none; cursor: pointer; }
+  .t-body { flex: 1; min-width: 0; }
+  .t-title { font-weight: 700; word-break: break-word; }
+  .t-desc { font-size: .84rem; color: var(--muted); white-space: pre-line; word-break: break-word; margin-top: .1rem; }
+  .t-meta { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-top: .4rem; font-size: .76rem; color: var(--muted); }
+  .tag { padding: .1rem .55rem; border-radius: 999px; font-weight: 700; font-size: .72rem; }
+  .tag-course { background: var(--c); color: #fff; }
+  .tag-High { background: var(--red-bg); color: var(--red); }
+  .tag-Medium { background: var(--orange-bg); color: var(--orange); }
+  .tag-Low { background: var(--blue-bg); color: var(--blue); }
+  .tag-late { background: var(--red); color: #fff; }
+  .tag-soon { background: var(--orange); color: #fff; }
+  .t-actions { display: flex; flex-direction: column; gap: .35rem; align-items: stretch; flex: none; }
+  .t-actions .row { display: flex; gap: .3rem; }
+  .t-actions select { padding: .25rem .4rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: .76rem; }
+  @media (max-width: 640px) { .task { flex-wrap: wrap; } .t-actions { width: 100%; flex-direction: row; justify-content: flex-end; } }
+
+  .empty { text-align: center; padding: 2rem 1rem; color: var(--muted); border: 2px dashed var(--border); border-radius: 14px; background: var(--surface); }
+
+  /* ---------- Course cards ---------- */
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+  .course-card { background: var(--surface); border: 1px solid var(--border); border-top: 6px solid var(--c); border-radius: var(--r); padding: 1rem; box-shadow: var(--shadow); }
+  .course-card h3 { display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: 1.02rem; margin-bottom: .3rem; }
+  .course-card .small { font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: .2rem; }
+  .course-card .list { margin-top: .8rem; }
+
+  /* ---------- Calendar ---------- */
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: .55rem; }
+  @media (max-width: 1000px) { .week { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+  .day { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: .6rem; min-height: 130px; }
+  .day.today { border: 2px solid var(--primary); background: var(--subtle); }
+  .day-h { display: flex; justify-content: space-between; font-size: .78rem; font-weight: 800; text-transform: uppercase; margin-bottom: .4rem; }
+  .day-h span:last-child { color: var(--muted); font-weight: 600; }
+  .chip { border-left: 4px solid var(--c); background: var(--subtle); border-radius: 8px; padding: .3rem .45rem; margin-bottom: .3rem; font-size: .76rem; cursor: pointer; width: 100%; text-align: left; display: block; }
+  .chip.done { opacity: .55; text-decoration: line-through; }
+  .chip b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip small { color: var(--muted); }
+
+  /* ---------- Dialogs ---------- */
+  dialog { border: 0; border-radius: 20px; padding: 0; width: min(540px, 94vw); background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  dialog::backdrop { background: rgba(20,10,50,.55); backdrop-filter: blur(3px); }
+  .dlg { padding: 1.4rem; }
+  .dlg h3 { font-size: 1.2rem; margin-bottom: 1rem; }
+  .fgrid { display: grid; gap: .8rem; }
+  .f2 { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+  @media (max-width: 520px) { .f2 { grid-template-columns: 1fr; } }
+  .field label { display: block; font-size: .8rem; font-weight: 700; margin-bottom: .25rem; }
+  .field input, .field select, .field textarea { width: 100%; padding: .55rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--subtle); }
+  .field textarea { min-height: 80px; resize: vertical; }
+  .err { color: var(--red); font-size: .82rem; font-weight: 700; display: none; }
+  .dlg-foot { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.1rem; }
+  .crow { display: flex; gap: .6rem; align-items: center; margin-bottom: .55rem; }
+  .crow input[type=color] { width: 44px; height: 38px; padding: 2px; border-radius: 8px; border: 1px solid var(--border); background: var(--subtle); cursor: pointer; }
+  .crow input[type=text] { flex: 1; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--subtle); }
+</style>
 </head>
 <body>
 
-  <!-- ========================================================================
-       HEADER
-       ======================================================================== -->
-  <header class="app-header">
-    <div class="container header-inner">
-      <div class="brand-group">
-        <h1>University Homework Tracker</h1>
-        <p id="todayDateDisplay">Loading today's date...</p>
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <h1>📚 Homework Tracker</h1>
+        <p id="todayText"></p>
       </div>
-      <div class="header-actions">
-        <div class="sync-badge" id="syncStatusBadge" title="Firebase Real-Time Sync Status">
-          <span class="sync-dot"></span>
-          <span id="syncStatusText">Connecting...</span>
-        </div>
-        <button class="btn btn-primary" id="openAddHwBtn">+ Add Homework</button>
-        <button class="btn btn-secondary" id="openCoursesModalBtn">Customize 7 Courses</button>
-        <button class="btn btn-secondary" id="exportDataBtn">Export JSON</button>
-        <button class="btn btn-secondary" id="importDataBtn">Import JSON</button>
-        <input type="file" id="importFileInput" accept=".json,application/json" style="display: none;" />
-        <button class="btn btn-secondary" id="themeToggleBtn">Dark Mode</button>
+      <div class="actions">
+        <span class="sync" id="syncBadge"><i></i><span id="syncText">Connecting...</span></span>
+        <button class="btn btn-white" data-action="add">+ Add Homework</button>
+        <button class="btn btn-glass" data-action="courses">Courses</button>
+        <button class="btn btn-glass" data-action="export">Export</button>
+        <button class="btn btn-glass" data-action="import">Import</button>
+        <button class="btn btn-glass" data-action="theme" id="themeBtn">Dark</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="container">
+<main class="wrap">
+  <section class="stats" id="stats"></section>
 
-    <!-- ======================================================================
-         1. DASHBOARD SECTION
-         ====================================================================== -->
-    <section class="section" aria-label="Dashboard">
-      <div class="section-header">
-        <h2 class="section-title">Overview & Course Progress</h2>
-      </div>
-      <div class="dashboard-grid">
-        <div class="card">
-          <div class="overall-progress-box">
-            <div class="overall-header">
-              <div>
-                <strong>Overall Completion</strong>
-                <div style="font-size: 0.82rem; color: var(--text-muted);" id="overallCountText">0 of 0 homework items done</div>
-              </div>
-              <div class="overall-percent" id="overallPercentText">0%</div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" id="overallProgressBar"></div>
-            </div>
-          </div>
+  <div class="layout">
+    <aside class="panel side">
+      <div class="panel-title"><span>Courses</span><button class="btn btn-soft btn-sm" data-action="courses">Edit</button></div>
+      <div id="courseList"></div>
+    </aside>
 
-          <div class="stats-row">
-            <div class="stat-pill" id="statOverdueBox">
-              <div class="stat-value" id="statOverdueCount">0</div>
-              <div class="stat-label">Overdue</div>
-            </div>
-            <div class="stat-pill" id="statTodayBox">
-              <div class="stat-value" id="statTodayCount">0</div>
-              <div class="stat-label">Due Today</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-value" id="statWeekCount">0</div>
-              <div class="stat-label">Due This Week</div>
-            </div>
-          </div>
+    <section>
+      <div class="toolbar">
+        <div class="tabs" id="tabs">
+          <button class="tab" data-view="list">Next Up</button>
+          <button class="tab" data-view="courses">By Course</button>
+          <button class="tab" data-view="calendar">Calendar</button>
         </div>
-
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-            <strong>Per-Course Progress (Tap to filter)</strong>
-            <button class="btn btn-secondary btn-sm" id="resetCourseViewBtn" style="display:none;">Show All 7 Courses</button>
-          </div>
-          <div class="course-progress-list" id="dashboardCourseBars"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================================
-         2. WHAT TO DO NEXT SECTION
-         ====================================================================== -->
-    <section class="section" aria-label="What to do next">
-      <div class="section-header">
-        <h2 class="section-title">What To Do Next</h2>
-        <span style="font-size: 0.82rem; color: var(--text-muted);">
-          Unfinished items sorted by nearest due date (Red = Overdue, Orange = Due within 2 days)
-        </span>
-      </div>
-      <div class="card">
-        <div class="next-up-list" id="nextUpContainer"></div>
-      </div>
-    </section>
-
-    <!-- ======================================================================
-         3. COURSES VIEW (TABS, FILTERS, SORTING & 7 COURSE CARDS)
-         ====================================================================== -->
-    <section class="section" aria-label="Courses and Homework">
-      <div class="section-header">
-        <h2 class="section-title">Courses & Homework List</h2>
-      </div>
-
-      <div class="course-tabs" id="courseTabsContainer"></div>
-
-      <div class="controls-bar">
-        <div class="filter-group">
-          <label for="filterCourseSelect">Course:</label>
-          <select id="filterCourseSelect" class="filter-select"></select>
-
-          <label for="filterStatusSelect">Status:</label>
-          <select id="filterStatusSelect" class="filter-select">
-            <option value="ALL">All Statuses</option>
+        <div class="filters" id="filters">
+          <input type="search" id="searchInput" placeholder="Search..." />
+          <select id="statusFilter">
             <option value="UNFINISHED">Unfinished</option>
+            <option value="ALL">All</option>
             <option value="Not Started">Not Started</option>
             <option value="In Progress">In Progress</option>
             <option value="Done">Done</option>
           </select>
-
-          <label for="sortBySelect">Sort by:</label>
-          <select id="sortBySelect" class="filter-select">
-            <option value="dueAsc">Due Date (Nearest First)</option>
-            <option value="dueDesc">Due Date (Furthest First)</option>
-            <option value="priorityDesc">Priority (High to Low)</option>
-            <option value="priorityAsc">Priority (Low to High)</option>
+          <select id="sortSelect">
+            <option value="dueAsc">Due: nearest</option>
+            <option value="dueDesc">Due: furthest</option>
+            <option value="priorityDesc">Priority: high first</option>
           </select>
         </div>
-
-        <div class="filter-group">
-          <input type="search" id="searchHwInput" class="search-input" placeholder="Search homework title or notes..." />
-        </div>
       </div>
-
-      <div class="courses-grid" id="coursesGridContainer"></div>
+      <div id="view"></div>
     </section>
-
-    <!-- ======================================================================
-         4. WEEK CALENDAR & DATE-GROUPED SCHEDULE VIEW
-         ====================================================================== -->
-    <section class="section" aria-label="Calendar and Week Schedule">
-      <div class="section-header">
-        <h2 class="section-title">Week Calendar & Upcoming Schedule</h2>
-        <div class="calendar-controls">
-          <button class="btn btn-secondary btn-sm" id="prevWeekBtn">&larr; Prev Week</button>
-          <button class="btn btn-secondary btn-sm" id="thisWeekBtn">Today / This Week</button>
-          <button class="btn btn-secondary btn-sm" id="nextWeekBtn">Next Week &rarr;</button>
-        </div>
-      </div>
-
-      <div class="week-grid" id="weekCalendarGrid"></div>
-
-      <div class="card">
-        <div style="font-weight: 700; margin-bottom: 0.75rem;">All Homework Grouped by Due Date</div>
-        <div class="schedule-grouped-list" id="scheduleGroupedContainer"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ========================================================================
-       MODAL 1: ADD / EDIT HOMEWORK
-       ======================================================================== -->
-  <div class="modal-backdrop" id="hwModalBackdrop" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title" id="hwModalTitle">Add Homework</h3>
-        <button class="btn btn-secondary btn-sm" id="closeHwModalBtn">Close</button>
-      </div>
-      <form id="hwForm" novalidate>
-        <input type="hidden" id="hwIdInput" />
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="hwCourseInput">Course *</label>
-            <select id="hwCourseInput" required></select>
-          </div>
-
-          <div class="form-field">
-            <label for="hwTitleInput">Homework Title *</label>
-            <input type="text" id="hwTitleInput" placeholder="e.g., Problem Set 4 - Integration by Parts" required />
-          </div>
-
-          <div class="form-field">
-            <label for="hwDescInput">Description / Notes (Optional)</label>
-            <textarea id="hwDescInput" placeholder="Textbook pages, submission link, or instructions..."></textarea>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-field">
-              <label for="hwAssignedDateInput">Class / Assigned Date (Optional)</label>
-              <input type="date" id="hwAssignedDateInput" />
-            </div>
-            <div class="form-field">
-              <label for="hwDueDateInput">Due Date *</label>
-              <input type="date" id="hwDueDateInput" required />
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-field">
-              <label for="hwStatusInput">Status</label>
-              <select id="hwStatusInput">
-                <option value="Not Started">Not Started</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Done">Done</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="hwPriorityInput">Priority</label>
-              <select id="hwPriorityInput">
-                <option value="Low">Low</option>
-                <option value="Medium" selected>Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-error" id="hwFormError">Please enter both a Homework Title and a Due Date.</div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="cancelHwModalBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Homework</button>
-        </div>
-      </form>
-    </div>
   </div>
+</main>
 
-  <!-- ========================================================================
-       MODAL 2: CUSTOMIZE 7 COURSES
-       ======================================================================== -->
-  <div class="modal-backdrop" id="coursesModalBackdrop" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title">Customize Your 7 Courses</h3>
-        <button class="btn btn-secondary btn-sm" id="closeCoursesModalBtn">Close</button>
+<dialog id="hwDialog">
+  <form class="dlg" id="hwForm" novalidate>
+    <h3 id="hwDlgTitle">Add Homework</h3>
+    <input type="hidden" id="hwId" />
+    <div class="fgrid">
+      <div class="field"><label for="hwCourse">Course</label><select id="hwCourse"></select></div>
+      <div class="field"><label for="hwTitle">Title *</label><input id="hwTitle" type="text" placeholder="e.g. Assignment 3 - Linked Lists" /></div>
+      <div class="field"><label for="hwDesc">Notes</label><textarea id="hwDesc" placeholder="Pages, link, instructions..."></textarea></div>
+      <div class="f2">
+        <div class="field"><label for="hwAssigned">Assigned date</label><input id="hwAssigned" type="date" /></div>
+        <div class="field"><label for="hwDue">Due date *</label><input id="hwDue" type="date" /></div>
       </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-        Rename any course and pick its accent color. Changes sync automatically across your devices.
-      </p>
-      <form id="coursesForm">
-        <div id="courseInputsList"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="cancelCoursesModalBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Courses</button>
-        </div>
-      </form>
+      <div class="f2">
+        <div class="field"><label for="hwStatus">Status</label>
+          <select id="hwStatus"><option>Not Started</option><option>In Progress</option><option>Done</option></select></div>
+        <div class="field"><label for="hwPriority">Priority</label>
+          <select id="hwPriority"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+      </div>
+      <div class="err" id="hwErr"></div>
     </div>
-  </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn btn-soft" data-action="close-dialog">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+  </form>
+</dialog>
 
-  <!-- ========================================================================
-       MAIN APPLICATION LOGIC (LOCAL STATE & UI)
-       ======================================================================== -->
-  <script>
-    const STORAGE_KEY = "uni_homework_tracker_v1";
+<dialog id="courseDialog">
+  <form class="dlg" id="courseForm">
+    <h3>Your 7 Courses</h3>
+    <div id="courseInputs"></div>
+    <div class="dlg-foot">
+      <button type="button" class="btn btn-soft" data-action="close-dialog">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+  </form>
+</dialog>
 
-    const DEFAULT_COURSES = [
-      { id: "c1", name: "Course 1", color: "#3b82f6" },
-      { id: "c2", name: "Course 2", color: "#8b5cf6" },
-      { id: "c3", name: "Course 3", color: "#10b981" },
-      { id: "c4", name: "Course 4", color: "#f59e0b" },
-      { id: "c5", name: "Course 5", color: "#ef4444" },
-      { id: "c6", name: "Course 6", color: "#ec4899" },
-      { id: "c7", name: "Course 7", color: "#06b6d4" }
-    ];
+<script>
+(() => {
+  "use strict";
 
-    const PRIORITY_WEIGHT = { High: 3, Medium: 2, Low: 1 };
+  const STORAGE_KEY = "uni_homework_tracker_v1";
+  const THEME_KEY = "uni_homework_theme";
+  const DEFAULT_COURSES = [
+    { id: "c1", name: "Course 1", color: "#6d4aff" },
+    { id: "c2", name: "Course 2", color: "#ec4899" },
+    { id: "c3", name: "Course 3", color: "#10b981" },
+    { id: "c4", name: "Course 4", color: "#f59e0b" },
+    { id: "c5", name: "Course 5", color: "#ef4444" },
+    { id: "c6", name: "Course 6", color: "#3b82f6" },
+    { id: "c7", name: "Course 7", color: "#06b6d4" }
+  ];
+  const STATUSES = ["Not Started", "In Progress", "Done"];
+  const PRIORITIES = ["Low", "Medium", "High"];
+  const PW = { High: 3, Medium: 2, Low: 1 };
 
-    let state = {
-      theme: "light",
-      courses: JSON.parse(JSON.stringify(DEFAULT_COURSES)),
-      homework: [],
-      ui: {
-        selectedCourseId: "ALL",
-        filterStatus: "ALL",
-        sortBy: "dueAsc",
-        searchQuery: "",
-        weekOffset: 0
-      }
-    };
+  const state = {
+    courses: structuredClone(DEFAULT_COURSES),
+    homework: [],
+    ui: { course: "ALL", view: "list", status: "UNFINISHED", sort: "dueAsc", search: "", weekOffset: 0 }
+  };
 
-    function getTodayLocal() {
-      const now = new Date();
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    }
+  const $ = (id) => document.getElementById(id);
 
-    function parseLocalDate(dateStr) {
-      if (!dateStr) return null;
-      const parts = dateStr.split("-").map(Number);
-      if (parts.length !== 3) return null;
-      return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
-    }
+  /* ---------------- Dates ---------------- */
+  const pad = (n) => String(n).padStart(2, "0");
+  const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+  const parseISO = (s) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  };
+  const daysFromToday = (s) => {
+    const d = parseISO(s);
+    if (!d) return 9999;
+    // Math.round handles DST shifts (23h/25h days)
+    return Math.round((d - today()) / 86400000);
+  };
+  const fmt = (s) => {
+    const d = parseISO(s);
+    return d ? d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "";
+  };
+  const relLabel = (s, status) => {
+    if (status === "Done") return "Completed";
+    const d = daysFromToday(s);
+    if (d < 0) return `Overdue by ${-d} day${d === -1 ? "" : "s"}`;
+    if (d === 0) return "Due today";
+    if (d === 1) return "Due tomorrow";
+    return `Due in ${d} days`;
+  };
 
-    function formatDateToInput(dateObj) {
-      const y = dateObj.getFullYear();
-      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const d = String(dateObj.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    }
+  /* ---------------- Safety / sanitizing ---------------- */
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const safeColor = (c, fallback) => (/^#[0-9a-f]{6}$/i.test(c) ? c : fallback);
 
-    function formatReadableDate(dateStr) {
-      const date = parseLocalDate(dateStr);
-      if (!date) return "";
-      return date.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric"
+  function sanitizeCourses(list) {
+    if (!Array.isArray(list) || list.length !== 7) return null;
+    return list.map((c, i) => ({
+      id: DEFAULT_COURSES[i].id, // stable ids; avoids injection through imported data
+      name: String(c?.name || "").trim().slice(0, 60) || `Course ${i + 1}`,
+      color: safeColor(c?.color, DEFAULT_COURSES[i].color)
+    }));
+  }
+  function sanitizeHomework(list, courses) {
+    if (!Array.isArray(list)) return null;
+    const ids = new Set(courses.map((c) => c.id));
+    const seen = new Set();
+    const out = [];
+    for (const h of list) {
+      if (!h || !h.title || !parseISO(h.dueDate)) continue;
+      let id = String(h.id || "").replace(/[^\w-]/g, "");
+      if (!id || seen.has(id)) id = newId();
+      seen.add(id);
+      out.push({
+        id,
+        courseId: ids.has(h.courseId) ? h.courseId : courses[0].id,
+        title: String(h.title).slice(0, 200),
+        description: String(h.description || "").slice(0, 2000),
+        assignedDate: parseISO(h.assignedDate) ? h.assignedDate : "",
+        dueDate: h.dueDate,
+        status: STATUSES.includes(h.status) ? h.status : "Not Started",
+        priority: PRIORITIES.includes(h.priority) ? h.priority : "Medium"
       });
     }
+    return out;
+  }
+  const newId = () => "hw_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const course = (id) => state.courses.find((c) => c.id === id) || state.courses[0];
 
-    function getDaysFromToday(dueDateStr) {
-      const due = parseLocalDate(dueDateStr);
-      if (!due) return 9999;
-      const today = getTodayLocal();
-      const diffMs = due.getTime() - today.getTime();
-      return Math.round(diffMs / (1000 * 60 * 60 * 24));
-    }
-
-    function getRelativeDueLabel(dueDateStr, status) {
-      if (status === "Done") return "Completed";
-      const diff = getDaysFromToday(dueDateStr);
-      if (diff < 0) {
-        const days = Math.abs(diff);
-        return `Overdue by ${days} day${days === 1 ? "" : "s"}`;
+  /* ---------------- Storage ---------------- */
+  function load() {
+    try {
+      const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (p) {
+        const c = sanitizeCourses(p.courses);
+        if (c) state.courses = c;
+        const h = sanitizeHomework(p.homework, state.courses);
+        if (h) state.homework = h;
       }
-      if (diff === 0) return "Due Today";
-      if (diff === 1) return "Due Tomorrow";
-      return `Due in ${diff} days`;
-    }
+    } catch (e) { console.error("Load failed", e); }
+    let theme = null;
+    try { theme = localStorage.getItem(THEME_KEY); } catch (e) {}
+    if (!theme) theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setTheme(theme);
+  }
+  let pushTimer = null;
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ courses: state.courses, homework: state.homework }));
+    } catch (e) { console.error("Save failed", e); }
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => window.pushStateToCloud && window.pushStateToCloud(), 400);
+  }
+  // Called by the Firebase module when remote data arrives
+  window.applyRemoteState = (data) => {
+    const c = sanitizeCourses(data.courses);
+    if (c) state.courses = c;
+    const h = sanitizeHomework(data.homework, state.courses);
+    if (h) state.homework = h;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ courses: state.courses, homework: state.homework })); } catch (e) {}
+    renderAll();
+  };
+  window.getTrackerState = () => ({ courses: state.courses, homework: state.homework });
 
-    function loadStateFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
+  function setTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    $("themeBtn").textContent = t === "dark" ? "Light" : "Dark";
+    try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+  }
 
-        if (Array.isArray(parsed.courses) && parsed.courses.length === 7) {
-          state.courses = parsed.courses;
-        }
-        if (Array.isArray(parsed.homework)) {
-          state.homework = parsed.homework;
-        }
-        if (parsed.theme === "dark" || parsed.theme === "light") {
-          state.theme = parsed.theme;
-        }
-      } catch (err) {
-        console.error("Failed to read state from localStorage:", err);
-      }
-    }
-
-    function saveStateToStorage() {
-      try {
-        const payload = {
-          theme: state.theme,
-          courses: state.courses,
-          homework: state.homework
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        if (typeof window.pushStateToCloud === "function") {
-          window.pushStateToCloud();
-        }
-      } catch (err) {
-        console.error("Failed to save state:", err);
-      }
-    }
-
-    function applyTheme() {
-      document.documentElement.setAttribute("data-theme", state.theme);
-      const btn = document.getElementById("themeToggleBtn");
-      if (btn) btn.textContent = state.theme === "dark" ? "Light Mode" : "Dark Mode";
-    }
-
-    function toggleTheme() {
-      state.theme = state.theme === "dark" ? "light" : "dark";
-      applyTheme();
-      saveStateToStorage();
-    }
-
-    function escapeHtml(str) {
-      if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    function getCourseById(courseId) {
-      return state.courses.find(c => c.id === courseId) || state.courses[0];
-    }
-
-    function sortHomeworkList(items, sortMode) {
-      return [...items].sort((a, b) => {
-        if (sortMode === "dueAsc") {
-          if (a.dueDate !== b.dueDate) return a.dueDate.localeCompare(b.dueDate);
-          return PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority];
-        }
-        if (sortMode === "dueDesc") {
-          if (a.dueDate !== b.dueDate) return b.dueDate.localeCompare(a.dueDate);
-          return PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority];
-        }
-        if (sortMode === "priorityDesc") {
-          if (PRIORITY_WEIGHT[b.priority] !== PRIORITY_WEIGHT[a.priority]) {
-            return PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority];
-          }
-          return a.dueDate.localeCompare(b.dueDate);
-        }
-        if (sortMode === "priorityAsc") {
-          if (PRIORITY_WEIGHT[a.priority] !== PRIORITY_WEIGHT[b.priority]) {
-            return PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
-          }
-          return a.dueDate.localeCompare(b.dueDate);
-        }
-        return 0;
-      });
-    }
-
-    function filterHomeworkItem(item) {
-      if (state.ui.filterStatus === "UNFINISHED" && item.status === "Done") return false;
-      if (
-        state.ui.filterStatus !== "ALL" &&
-        state.ui.filterStatus !== "UNFINISHED" &&
-        item.status !== state.ui.filterStatus
-      ) {
-        return false;
-      }
-
-      if (state.ui.searchQuery.trim() !== "") {
-        const q = state.ui.searchQuery.toLowerCase();
-        const inTitle = item.title.toLowerCase().includes(q);
-        const inDesc = (item.description || "").toLowerCase().includes(q);
-        if (!inTitle && !inDesc) return false;
-      }
-
+  /* ---------------- Filtering / sorting ---------------- */
+  function sortList(items, mode) {
+    return [...items].sort((a, b) => {
+      const byDue = a.dueDate.localeCompare(b.dueDate);
+      const byPri = PW[b.priority] - PW[a.priority];
+      if (mode === "dueDesc") return -byDue || byPri;
+      if (mode === "priorityDesc") return byPri || byDue;
+      return byDue || byPri;
+    });
+  }
+  function visible() {
+    const { course: cid, status, search } = state.ui;
+    const q = search.trim().toLowerCase();
+    return state.homework.filter((h) => {
+      if (cid !== "ALL" && h.courseId !== cid) return false;
+      if (status === "UNFINISHED" && h.status === "Done") return false;
+      if (status !== "ALL" && status !== "UNFINISHED" && h.status !== status) return false;
+      if (q && !h.title.toLowerCase().includes(q) && !h.description.toLowerCase().includes(q)) return false;
       return true;
-    }
+    });
+  }
 
-    function renderDashboard() {
-      const total = state.homework.length;
-      const doneCount = state.homework.filter(h => h.status === "Done").length;
-      const percent = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+  /* ---------------- Rendering ---------------- */
+  function taskHtml(h, showCourse = true) {
+    const c = course(h.courseId);
+    const done = h.status === "Done";
+    const diff = daysFromToday(h.dueDate);
+    const overdue = !done && diff < 0;
+    const soon = !done && diff >= 0 && diff <= 2;
+    const cls = done ? "done" : overdue ? "overdue" : soon ? "soon" : "";
+    const urgency = overdue ? `<span class="tag tag-late">${esc(relLabel(h.dueDate, h.status))}</span>`
+      : soon ? `<span class="tag tag-soon">${esc(relLabel(h.dueDate, h.status))}</span>` : "";
+    return `
+    <div class="task ${cls}" style="--c:${c.color}" data-id="${esc(h.id)}">
+      <input type="checkbox" data-action="toggle" ${done ? "checked" : ""} aria-label="Mark done" />
+      <div class="t-body">
+        <div class="t-title">${esc(h.title)}</div>
+        ${h.description ? `<div class="t-desc">${esc(h.description)}</div>` : ""}
+        <div class="t-meta">
+          ${showCourse ? `<span class="tag tag-course">${esc(c.name)}</span>` : ""}
+          <span class="tag tag-${h.priority}">${h.priority}</span>
+          ${urgency}
+          <span>📅 ${esc(fmt(h.dueDate))}${!urgency ? ` · ${esc(relLabel(h.dueDate, h.status))}` : ""}</span>
+          ${h.assignedDate ? `<span>Assigned ${esc(fmt(h.assignedDate))}</span>` : ""}
+        </div>
+      </div>
+      <div class="t-actions">
+        <select data-action="status" aria-label="Status">
+          ${STATUSES.map((s) => `<option ${s === h.status ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+        <div class="row">
+          <button class="btn btn-soft btn-sm" data-action="edit">Edit</button>
+          <button class="btn btn-danger btn-sm" data-action="delete">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }
 
-      document.getElementById("overallCountText").textContent =
-        `${doneCount} of ${total} homework item${total === 1 ? "" : "s"} done`;
-      document.getElementById("overallPercentText").textContent = `${percent}%`;
-      document.getElementById("overallProgressBar").style.width = `${percent}%`;
+  function renderStats() {
+    const hw = state.homework;
+    const total = hw.length;
+    const done = hw.filter((h) => h.status === "Done").length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    let overdue = 0, due0 = 0, next7 = 0;
+    hw.forEach((h) => {
+      if (h.status === "Done") return;
+      const d = daysFromToday(h.dueDate);
+      if (d < 0) overdue++;
+      else if (d === 0) due0++;
+      else if (d <= 7) next7++;
+    });
+    $("stats").innerHTML = `
+      <div class="stat" style="--accent:var(--primary)">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">${pct}%</div>
+        <div class="stat-sub">${done} of ${total} done</div>
+        <div class="bar"><span style="width:${pct}%"></span></div>
+      </div>
+      <div class="stat" style="--accent:var(--red)"><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div><div class="stat-sub">need attention now</div></div>
+      <div class="stat" style="--accent:var(--orange)"><div class="stat-label">Due today</div><div class="stat-value">${due0}</div><div class="stat-sub">finish before tonight</div></div>
+      <div class="stat" style="--accent:var(--blue)"><div class="stat-label">Next 7 days</div><div class="stat-value">${next7}</div><div class="stat-sub">coming up</div></div>`;
+  }
 
-      let overdue = 0;
-      let dueToday = 0;
-      let dueThisWeek = 0;
-
-      state.homework.forEach(item => {
-        if (item.status === "Done") return;
-        const diff = getDaysFromToday(item.dueDate);
-        if (diff < 0) overdue++;
-        if (diff === 0) dueToday++;
-        if (diff >= 0 && diff <= 7) dueThisWeek++;
-      });
-
-      document.getElementById("statOverdueCount").textContent = overdue;
-      document.getElementById("statTodayCount").textContent = dueToday;
-      document.getElementById("statWeekCount").textContent = dueThisWeek;
-
-      document.getElementById("statOverdueBox").classList.toggle("overdue-active", overdue > 0);
-      document.getElementById("statTodayBox").classList.toggle("today-active", dueToday > 0);
-
-      const barsContainer = document.getElementById("dashboardCourseBars");
-      barsContainer.innerHTML = state.courses.map(course => {
-        const courseItems = state.homework.filter(h => h.courseId === course.id);
-        const cTotal = courseItems.length;
-        const cDone = courseItems.filter(h => h.status === "Done").length;
-        const cPercent = cTotal === 0 ? 0 : Math.round((cDone / cTotal) * 100);
-
-        return `
-          <div class="course-mini-stat" style="border-left-color: ${course.color};" onclick="selectCourseTab('${course.id}')">
-            <div class="course-mini-top">
-              <span class="course-mini-name">${escapeHtml(course.name)}</span>
-              <span class="course-mini-count">${cDone}/${cTotal} (${cPercent}%)</span>
-            </div>
-            <div class="progress-track" style="height: 7px;">
-              <div class="progress-fill" style="width: ${cPercent}%; background: ${course.color};"></div>
-            </div>
-          </div>
-        `;
+  function renderSidebar() {
+    const row = (id, name, color, count, done) => `
+      <button class="course-row ${state.ui.course === id ? "active" : ""}" style="--c:${color}" data-action="pick-course" data-course="${id}">
+        <div class="course-row-top"><span class="dot"></span><span class="name">${esc(name)}</span><span class="cnt">${done}/${count}</span></div>
+        <div class="bar"><span style="width:${count ? (done / count) * 100 : 0}%;--c:${color}"></span></div>
+      </button>`;
+    const all = state.homework;
+    $("courseList").innerHTML =
+      row("ALL", "All courses", "#6d4aff", all.length, all.filter((h) => h.status === "Done").length) +
+      state.courses.map((c) => {
+        const items = all.filter((h) => h.courseId === c.id);
+        return row(c.id, c.name, c.color, items.length, items.filter((h) => h.status === "Done").length);
       }).join("");
+  }
 
-      const resetBtn = document.getElementById("resetCourseViewBtn");
-      resetBtn.style.display = state.ui.selectedCourseId === "ALL" ? "none" : "inline-flex";
+  function renderList() {
+    const items = visible();
+    if (!items.length) return `<div class="empty">Nothing here. Add homework or change the filters.</div>`;
+    const buckets = [
+      { key: "overdue", title: "⚠️ Overdue", test: (d) => d < 0 },
+      { key: "today", title: "🔥 Today", test: (d) => d === 0 },
+      { key: "tomorrow", title: "Tomorrow", test: (d) => d === 1 },
+      { key: "week", title: "Next 7 days", test: (d) => d >= 2 && d <= 7 },
+      { key: "later", title: "Later", test: (d) => d > 7 }
+    ];
+    const done = items.filter((h) => h.status === "Done");
+    const open = items.filter((h) => h.status !== "Done");
+    let html = buckets.map((b) => {
+      const g = sortList(open.filter((h) => b.test(daysFromToday(h.dueDate))), state.ui.sort);
+      if (!g.length) return "";
+      return `<div class="group g-${b.key}"><div class="group-head">${b.title}<span class="pill">${g.length}</span></div>${g.map((h) => taskHtml(h)).join("")}</div>`;
+    }).join("");
+    if (done.length) {
+      html += `<div class="group"><div class="group-head">✅ Done<span class="pill">${done.length}</span></div>${sortList(done, state.ui.sort).map((h) => taskHtml(h)).join("")}</div>`;
     }
+    return html;
+  }
 
-    function buildHomeworkItemHtml(item, showCourseBadge = true) {
-      const course = getCourseById(item.courseId);
-      const diff = getDaysFromToday(item.dueDate);
-      const isDone = item.status === "Done";
-      const isOverdue = !isDone && diff < 0;
-      const isDueSoon = !isDone && diff >= 0 && diff <= 2;
-
-      let urgencyClass = "";
-      let urgencyBadge = "";
-      if (isDone) {
-        urgencyClass = "is-done";
-      } else if (isOverdue) {
-        urgencyClass = "is-overdue";
-        urgencyBadge = `<span class="badge badge-urgent">${escapeHtml(getRelativeDueLabel(item.dueDate, item.status))}</span>`;
-      } else if (isDueSoon) {
-        urgencyClass = "is-due-soon";
-        urgencyBadge = `<span class="badge badge-soon">${escapeHtml(getRelativeDueLabel(item.dueDate, item.status))}</span>`;
-      }
-
-      const courseBadgeHtml = showCourseBadge
-        ? `<span class="badge badge-course" style="background: ${course.color};">${escapeHtml(course.name)}</span>`
-        : "";
-
-      const assignedMeta = item.assignedDate
-        ? `<span>Assigned: ${escapeHtml(formatReadableDate(item.assignedDate))}</span>`
-        : "";
-
+  function renderCourses() {
+    const items = visible();
+    const list = state.ui.course === "ALL" ? state.courses : state.courses.filter((c) => c.id === state.ui.course);
+    return `<div class="course-grid">${list.map((c) => {
+      const all = state.homework.filter((h) => h.courseId === c.id);
+      const done = all.filter((h) => h.status === "Done").length;
+      const pct = all.length ? Math.round((done / all.length) * 100) : 0;
+      const mine = sortList(items.filter((h) => h.courseId === c.id), state.ui.sort);
       return `
-        <div class="hw-item ${urgencyClass}" style="border-left-color: ${isOverdue ? 'var(--urgent-red-border)' : isDueSoon ? 'var(--soon-orange-border)' : course.color};">
-          <div class="hw-left">
-            <input
-              type="checkbox"
-              class="hw-checkbox"
-              ${isDone ? "checked" : ""}
-              onchange="toggleHomeworkDone('${item.id}', this.checked)"
-              title="Mark Done in one click"
-            />
-            <div class="hw-content">
-              <div class="hw-title-row">
-                ${courseBadgeHtml}
-                <span class="hw-title">${escapeHtml(item.title)}</span>
-                <span class="badge badge-priority-${item.priority}">${item.priority}</span>
-                ${urgencyBadge}
-              </div>
-              ${item.description ? `<div class="hw-desc">${escapeHtml(item.description)}</div>` : ""}
-              <div class="hw-meta">
-                <span><strong>Due:</strong> ${escapeHtml(formatReadableDate(item.dueDate))} (${escapeHtml(getRelativeDueLabel(item.dueDate, item.status))})</span>
-                ${assignedMeta}
-              </div>
-            </div>
-          </div>
+      <div class="course-card" style="--c:${c.color}">
+        <h3><span>${esc(c.name)}</span><button class="btn btn-primary btn-sm" style="background:${c.color}" data-action="add" data-course="${c.id}">+ Add</button></h3>
+        <div class="small"><span>Progress</span><span><b>${done}/${all.length}</b> (${pct}%)</span></div>
+        <div class="bar"><span style="width:${pct}%"></span></div>
+        <div class="list">${mine.length ? mine.map((h) => taskHtml(h, false)).join("") : `<div class="empty">${all.length ? "No match for filters." : "No homework yet."}</div>`}</div>
+      </div>`;
+    }).join("")}</div>`;
+  }
 
-          <div class="hw-actions">
-            <select class="status-select" onchange="updateHomeworkStatus('${item.id}', this.value)" aria-label="Homework Status">
-              <option value="Not Started" ${item.status === "Not Started" ? "selected" : ""}>Not Started</option>
-              <option value="In Progress" ${item.status === "In Progress" ? "selected" : ""}>In Progress</option>
-              <option value="Done" ${item.status === "Done" ? "selected" : ""}>Done</option>
-            </select>
-            <button class="btn btn-secondary btn-sm" onclick="openEditHomeworkModal('${item.id}')">Edit</button>
-            <button class="btn btn-danger-outline btn-sm" onclick="deleteHomework('${item.id}')">Delete</button>
-          </div>
-        </div>
-      `;
+  function renderCalendar() {
+    const t = today();
+    const start = new Date(t);
+    start.setDate(t.getDate() - t.getDay() + state.ui.weekOffset * 7); // week starts Sunday
+    const todayIso = toISO(t);
+    const items = visible();
+    let html = `<div class="toolbar" style="margin-bottom:.7rem">
+      <b>${start.toLocaleDateString(undefined, { month: "long", day: "numeric" })} – ${new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</b>
+      <div class="actions">
+        <button class="btn btn-soft btn-sm" data-action="week" data-d="-1">← Prev</button>
+        <button class="btn btn-soft btn-sm" data-action="week" data-d="0">This week</button>
+        <button class="btn btn-soft btn-sm" data-action="week" data-d="1">Next →</button>
+      </div></div><div class="week">`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const iso = toISO(d);
+      const day = sortList(items.filter((h) => h.dueDate === iso), "priorityDesc");
+      html += `<div class="day ${iso === todayIso ? "today" : ""}">
+        <div class="day-h"><span>${d.toLocaleDateString(undefined, { weekday: "short" })}</span><span>${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span></div>
+        ${day.map((h) => { const c = course(h.courseId); return `<button class="chip ${h.status === "Done" ? "done" : ""}" style="--c:${c.color}" data-action="edit" data-id="${esc(h.id)}"><b>${esc(h.title)}</b><small>${esc(c.name)}</small></button>`; }).join("") || `<small style="color:var(--muted)">Free</small>`}
+      </div>`;
     }
+    return html + "</div>";
+  }
 
-    function renderNextUp() {
-      const container = document.getElementById("nextUpContainer");
-      const unfinished = state.homework.filter(h => h.status !== "Done");
-      const sorted = sortHomeworkList(unfinished, "dueAsc");
+  function renderAll() {
+    $("todayText").textContent = "Today is " + today().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    renderStats();
+    renderSidebar();
+    document.querySelectorAll("#tabs .tab").forEach((b) => b.classList.toggle("active", b.dataset.view === state.ui.view));
+    $("filters").style.display = "flex";
+    $("view").innerHTML = state.ui.view === "list" ? renderList() : state.ui.view === "courses" ? renderCourses() : renderCalendar();
+  }
 
-      if (sorted.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            No unfinished homework right now. You are all caught up, or add a new assignment above!
-          </div>
-        `;
-        return;
-      }
+  /* ---------------- Dialogs ---------------- */
+  function fillCourseSelect() {
+    $("hwCourse").innerHTML = state.courses.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  }
+  function openHw(id, preCourse) {
+    fillCourseSelect();
+    const h = id ? state.homework.find((x) => x.id === id) : null;
+    $("hwDlgTitle").textContent = h ? "Edit Homework" : "Add Homework";
+    $("hwId").value = h ? h.id : "";
+    $("hwCourse").value = h ? h.courseId : (preCourse || (state.ui.course !== "ALL" ? state.ui.course : state.courses[0].id));
+    $("hwTitle").value = h ? h.title : "";
+    $("hwDesc").value = h ? h.description : "";
+    $("hwAssigned").value = h ? h.assignedDate : toISO(today());
+    $("hwDue").value = h ? h.dueDate : toISO(today());
+    $("hwStatus").value = h ? h.status : "Not Started";
+    $("hwPriority").value = h ? h.priority : "Medium";
+    $("hwErr").style.display = "none";
+    $("hwDialog").showModal();
+    $("hwTitle").focus();
+  }
+  function openCourses() {
+    $("courseInputs").innerHTML = state.courses.map((c, i) => `
+      <div class="crow"><b style="width:24px">#${i + 1}</b>
+        <input type="color" id="cc_${c.id}" value="${c.color}" />
+        <input type="text" id="cn_${c.id}" value="${esc(c.name)}" maxlength="60" /></div>`).join("");
+    $("courseDialog").showModal();
+  }
 
-      container.innerHTML = sorted.map(item => buildHomeworkItemHtml(item, true)).join("");
-    }
+  $("hwForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = $("hwTitle").value.trim();
+    const due = $("hwDue").value;
+    const assigned = $("hwAssigned").value;
+    const err = $("hwErr");
+    if (!title || !due) { err.textContent = "Title and due date are required."; err.style.display = "block"; return; }
+    if (assigned && assigned > due) { err.textContent = "Due date can't be before the assigned date."; err.style.display = "block"; return; }
+    const data = {
+      courseId: $("hwCourse").value, title, description: $("hwDesc").value.trim(),
+      assignedDate: assigned, dueDate: due, status: $("hwStatus").value, priority: $("hwPriority").value
+    };
+    const id = $("hwId").value;
+    if (id) Object.assign(state.homework.find((h) => h.id === id) || {}, data);
+    else state.homework.push({ id: newId(), ...data });
+    save(); $("hwDialog").close(); renderAll();
+  });
 
-    function renderCourseSelectorsAndTabs() {
-      const tabsContainer = document.getElementById("courseTabsContainer");
-      const allCount = state.homework.length;
-      let tabsHtml = `
-        <button class="course-tab ${state.ui.selectedCourseId === 'ALL' ? 'active' : ''}" onclick="selectCourseTab('ALL')">
-          All 7 Courses (${allCount})
-        </button>
-      `;
+  $("courseForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    state.courses.forEach((c, i) => {
+      c.name = $("cn_" + c.id).value.trim() || `Course ${i + 1}`;
+      c.color = safeColor($("cc_" + c.id).value, c.color);
+    });
+    save(); $("courseDialog").close(); renderAll();
+  });
 
-      state.courses.forEach(course => {
-        const count = state.homework.filter(h => h.courseId === course.id).length;
-        const isActive = state.ui.selectedCourseId === course.id ? "active" : "";
-        tabsHtml += `
-          <button class="course-tab ${isActive}" onclick="selectCourseTab('${course.id}')">
-            <span class="color-dot" style="background: ${course.color};"></span>
-            <span>${escapeHtml(course.name)} (${count})</span>
-          </button>
-        `;
-      });
-      tabsContainer.innerHTML = tabsHtml;
+  // click outside dialog closes it
+  ["hwDialog", "courseDialog"].forEach((id) => {
+    $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); });
+  });
 
-      const filterSelect = document.getElementById("filterCourseSelect");
-      filterSelect.innerHTML = `
-        <option value="ALL">All 7 Courses</option>
-        ${state.courses.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}
-      `;
-      filterSelect.value = state.ui.selectedCourseId;
+  /* ---------------- Import / export ---------------- */
+  function exportJson() {
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), courses: state.courses, homework: state.homework }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `homework-backup-${toISO(today())}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  $("importFile").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        const c = sanitizeCourses(d.courses);
+        const h = c && sanitizeHomework(d.homework, c);
+        if (!c || !h) { alert("Invalid backup file."); return; }
+        if (!confirm(`Replace current data with ${h.length} homework items from this file?`)) return;
+        state.courses = c; state.homework = h;
+        save(); renderAll();
+      } catch { alert("Could not read that JSON file."); }
+      finally { e.target.value = ""; }
+    };
+    r.readAsText(file);
+  });
 
-      const modalCourseSelect = document.getElementById("hwCourseInput");
-      const currentModalVal = modalCourseSelect.value;
-      modalCourseSelect.innerHTML = state.courses
-        .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
-        .join("");
-      if (currentModalVal && state.courses.some(c => c.id === currentModalVal)) {
-        modalCourseSelect.value = currentModalVal;
-      }
-    }
+  /* ---------------- Events (delegated; no inline handlers) ---------------- */
+  const taskId = (el) => el.closest("[data-id]")?.dataset.id;
 
-    function renderCoursesGrid() {
-      const grid = document.getElementById("coursesGridContainer");
-      const coursesToRender = state.ui.selectedCourseId === "ALL"
-        ? state.courses
-        : state.courses.filter(c => c.id === state.ui.selectedCourseId);
-
-      grid.classList.toggle("single-course-mode", coursesToRender.length === 1);
-
-      grid.innerHTML = coursesToRender.map(course => {
-        const allCourseHw = state.homework.filter(h => h.courseId === course.id);
-        const total = allCourseHw.length;
-        const done = allCourseHw.filter(h => h.status === "Done").length;
-        const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-
-        const filteredHw = sortHomeworkList(
-          allCourseHw.filter(filterHomeworkItem),
-          state.ui.sortBy
-        );
-
-        let bodyContent = "";
-        if (total === 0) {
-          bodyContent = `<div class="empty-state">No homework yet. Add your first one!</div>`;
-        } else if (filteredHw.length === 0) {
-          bodyContent = `<div class="empty-state">No homework matches your current filter.</div>`;
-        } else {
-          bodyContent = filteredHw.map(item => buildHomeworkItemHtml(item, false)).join("");
-        }
-
-        return `
-          <div class="course-card" style="border-top-color: ${course.color};">
-            <div class="course-card-header">
-              <div class="course-card-title-row">
-                <div class="course-card-title">
-                  <span class="color-dot" style="background: ${course.color}; width: 12px; height: 12px;"></span>
-                  <span>${escapeHtml(course.name)}</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem;">
-                  <button class="btn btn-secondary btn-sm" onclick="openCoursesModal()">Rename / Color</button>
-                  <button class="btn btn-primary btn-sm" style="background: ${course.color};" onclick="openAddHomeworkModal('${course.id}')">
-                    + Add Homework
-                  </button>
-                </div>
-              </div>
-              <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.35rem;">
-                <span>Course Progress</span>
-                <span><strong>${done}/${total}</strong> Done (${percent}%)</span>
-              </div>
-              <div class="progress-track" style="height: 8px;">
-                <div class="progress-fill" style="width: ${percent}%; background: ${course.color};"></div>
-              </div>
-            </div>
-            <div class="course-card-body">
-              ${bodyContent}
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderCalendarAndSchedule() {
-      const weekGrid = document.getElementById("weekCalendarGrid");
-      const today = getTodayLocal();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() + state.ui.weekOffset * 7);
-
-      let daysHtml = "";
-      for (let i = 0; i < 7; i++) {
-        const dayDate = new Date(startOfWeek);
-        dayDate.setDate(startOfWeek.getDate() + i);
-        const dateIso = formatDateToInput(dayDate);
-        const isToday = dateIso === formatDateToInput(today);
-
-        const dayName = dayDate.toLocaleDateString(undefined, { weekday: "short" });
-        const monthDay = dayDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-
-        const dayHw = sortHomeworkList(
-          state.homework.filter(h => h.dueDate === dateIso),
-          "priorityDesc"
-        );
-
-        const pillsHtml = dayHw.length === 0
-          ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem;">No items due</div>`
-          : dayHw.map(item => {
-              const c = getCourseById(item.courseId);
-              return `
-                <div
-                  class="cal-pill ${item.status === 'Done' ? 'is-done' : ''}"
-                  style="border-left-color: ${c.color};"
-                  onclick="openEditHomeworkModal('${item.id}')"
-                  title="Click to edit ${escapeHtml(item.title)}"
-                >
-                  <div class="cal-pill-title">${escapeHtml(item.title)}</div>
-                  <div class="cal-pill-course">${escapeHtml(c.name)} &bull; ${item.status}</div>
-                </div>
-              `;
-            }).join("");
-
-        daysHtml += `
-          <div class="day-col ${isToday ? 'is-today' : ''}">
-            <div class="day-header">
-              <span class="day-name">${dayName} ${isToday ? '(Today)' : ''}</span>
-              <span class="day-date">${monthDay}</span>
-            </div>
-            ${pillsHtml}
-          </div>
-        `;
-      }
-      weekGrid.innerHTML = daysHtml;
-
-      const scheduleContainer = document.getElementById("scheduleGroupedContainer");
-      if (state.homework.length === 0) {
-        scheduleContainer.innerHTML = `<div class="empty-state">No homework scheduled yet.</div>`;
-        return;
-      }
-
-      const sortedAll = sortHomeworkList(state.homework, "dueAsc");
-      const groups = {};
-      sortedAll.forEach(item => {
-        if (!groups[item.dueDate]) groups[item.dueDate] = [];
-        groups[item.dueDate].push(item);
-      });
-
-      scheduleContainer.innerHTML = Object.keys(groups).map(dateKey => {
-        const items = groups[dateKey];
-        const rel = getRelativeDueLabel(dateKey, "Not Started");
-        return `
-          <div class="schedule-date-group">
-            <div class="schedule-date-heading">
-              ${escapeHtml(formatReadableDate(dateKey))} &mdash; <span style="font-weight:500; color:var(--text-muted);">${escapeHtml(rel)}</span>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:0.5rem;">
-              ${items.map(item => buildHomeworkItemHtml(item, true)).join("")}
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderAll() {
-      const today = getTodayLocal();
-      document.getElementById("todayDateDisplay").textContent =
-        "Today is " + today.toLocaleDateString(undefined, {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        });
-
-      renderDashboard();
-      renderNextUp();
-      renderCourseSelectorsAndTabs();
-      renderCoursesGrid();
-      renderCalendarAndSchedule();
-    }
-
-    function selectCourseTab(courseId) {
-      state.ui.selectedCourseId = courseId;
+  document.addEventListener("click", (e) => {
+    const tab = e.target.closest("#tabs .tab");
+    if (tab) { state.ui.view = tab.dataset.view; renderAll(); return; }
+    const el = e.target.closest("[data-action]");
+    if (!el || el.tagName === "SELECT" || el.type === "checkbox") return;
+    const a = el.dataset.action;
+    if (a === "add") openHw(null, el.dataset.course);
+    else if (a === "courses") openCourses();
+    else if (a === "export") exportJson();
+    else if (a === "import") $("importFile").click();
+    else if (a === "theme") setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    else if (a === "close-dialog") el.closest("dialog").close();
+    else if (a === "pick-course") { state.ui.course = el.dataset.course; renderAll(); }
+    else if (a === "edit") openHw(taskId(el));
+    else if (a === "delete") {
+      const h = state.homework.find((x) => x.id === taskId(el));
+      if (h && confirm(`Delete "${h.title}"?`)) { state.homework = state.homework.filter((x) => x.id !== h.id); save(); renderAll(); }
+    } else if (a === "week") {
+      const d = +el.dataset.d;
+      state.ui.weekOffset = d === 0 ? 0 : state.ui.weekOffset + d;
       renderAll();
     }
+  });
 
-    function toggleHomeworkDone(hwId, isChecked) {
-      const item = state.homework.find(h => h.id === hwId);
-      if (!item) return;
-      item.status = isChecked ? "Done" : "Not Started";
-      saveStateToStorage();
-      renderAll();
+  document.addEventListener("change", (e) => {
+    const el = e.target;
+    const a = el.dataset?.action;
+    if (a === "toggle" || a === "status") {
+      const h = state.homework.find((x) => x.id === taskId(el));
+      if (!h) return;
+      if (a === "toggle") h.status = el.checked ? "Done" : (h.status === "Done" ? "Not Started" : h.status);
+      else h.status = STATUSES.includes(el.value) ? el.value : h.status;
+      save(); renderAll();
     }
+  });
 
-    function updateHomeworkStatus(hwId, newStatus) {
-      const item = state.homework.find(h => h.id === hwId);
-      if (!item) return;
-      item.status = newStatus;
-      saveStateToStorage();
-      renderAll();
-    }
+  $("statusFilter").addEventListener("change", (e) => { state.ui.status = e.target.value; renderAll(); });
+  $("sortSelect").addEventListener("change", (e) => { state.ui.sort = e.target.value; renderAll(); });
+  $("searchInput").addEventListener("input", (e) => { state.ui.search = e.target.value; renderAll(); });
 
-    function deleteHomework(hwId) {
-      const item = state.homework.find(h => h.id === hwId);
-      if (!item) return;
-      const confirmed = window.confirm(`Are you sure you want to delete "${item.title}"?`);
-      if (!confirmed) return;
+  /* ---------------- Init ---------------- */
+  load();
+  renderAll();
+  // refresh when the day rolls over while the tab stays open
+  let lastDay = toISO(today());
+  setInterval(() => { const n = toISO(today()); if (n !== lastDay) { lastDay = n; renderAll(); } }, 60000);
+})();
+</script>
 
-      state.homework = state.homework.filter(h => h.id !== hwId);
-      saveStateToStorage();
-      renderAll();
-    }
+<!-- Firebase sync. If the CDN fails, the app keeps working locally. -->
+<script type="module">
+  const badge = document.getElementById("syncBadge");
+  const text = document.getElementById("syncText");
+  const setBadge = (cls, label) => {
+    badge.classList.remove("synced", "syncing", "error");
+    if (cls) badge.classList.add(cls);
+    text.textContent = label;
+  };
 
-    function openAddHomeworkModal(preselectedCourseId) {
-      document.getElementById("hwModalTitle").textContent = "Add Homework";
-      document.getElementById("hwIdInput").value = "";
-      document.getElementById("hwTitleInput").value = "";
-      document.getElementById("hwDescInput").value = "";
-      document.getElementById("hwAssignedDateInput").value = formatDateToInput(getTodayLocal());
-      document.getElementById("hwDueDateInput").value = formatDateToInput(getTodayLocal());
-      document.getElementById("hwStatusInput").value = "Not Started";
-      document.getElementById("hwPriorityInput").value = "Medium";
-      document.getElementById("hwFormError").style.display = "none";
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js");
+    const { getFirestore, doc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js");
 
-      const courseSelect = document.getElementById("hwCourseInput");
-      if (preselectedCourseId && preselectedCourseId !== "ALL") {
-        courseSelect.value = preselectedCourseId;
-      } else if (state.ui.selectedCourseId !== "ALL") {
-        courseSelect.value = state.ui.selectedCourseId;
-      } else {
-        courseSelect.value = state.courses[0].id;
-      }
-
-      document.getElementById("hwModalBackdrop").classList.add("open");
-      document.getElementById("hwTitleInput").focus();
-    }
-
-    function openEditHomeworkModal(hwId) {
-      const item = state.homework.find(h => h.id === hwId);
-      if (!item) return;
-
-      document.getElementById("hwModalTitle").textContent = "Edit Homework";
-      document.getElementById("hwIdInput").value = item.id;
-      document.getElementById("hwCourseInput").value = item.courseId;
-      document.getElementById("hwTitleInput").value = item.title;
-      document.getElementById("hwDescInput").value = item.description || "";
-      document.getElementById("hwAssignedDateInput").value = item.assignedDate || "";
-      document.getElementById("hwDueDateInput").value = item.dueDate;
-      document.getElementById("hwStatusInput").value = item.status;
-      document.getElementById("hwPriorityInput").value = item.priority;
-      document.getElementById("hwFormError").style.display = "none";
-
-      document.getElementById("hwModalBackdrop").classList.add("open");
-      document.getElementById("hwTitleInput").focus();
-    }
-
-    function closeHomeworkModal() {
-      document.getElementById("hwModalBackdrop").classList.remove("open");
-    }
-
-    function handleHomeworkFormSubmit(e) {
-      e.preventDefault();
-      const id = document.getElementById("hwIdInput").value;
-      const courseId = document.getElementById("hwCourseInput").value;
-      const title = document.getElementById("hwTitleInput").value.trim();
-      const description = document.getElementById("hwDescInput").value.trim();
-      const assignedDate = document.getElementById("hwAssignedDateInput").value;
-      const dueDate = document.getElementById("hwDueDateInput").value;
-      const status = document.getElementById("hwStatusInput").value;
-      const priority = document.getElementById("hwPriorityInput").value;
-
-      if (!title || !dueDate) {
-        document.getElementById("hwFormError").style.display = "block";
-        return;
-      }
-
-      if (id) {
-        const existing = state.homework.find(h => h.id === id);
-        if (existing) {
-          existing.courseId = courseId;
-          existing.title = title;
-          existing.description = description;
-          existing.assignedDate = assignedDate;
-          existing.dueDate = dueDate;
-          existing.status = status;
-          existing.priority = priority;
-        }
-      } else {
-        state.homework.push({
-          id: "hw_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
-          courseId,
-          title,
-          description,
-          assignedDate,
-          dueDate,
-          status,
-          priority
-        });
-      }
-
-      saveStateToStorage();
-      closeHomeworkModal();
-      renderAll();
-    }
-
-    function openCoursesModal() {
-      const list = document.getElementById("courseInputsList");
-      list.innerHTML = state.courses.map((course, idx) => `
-        <div class="course-edit-row">
-          <span style="font-size:0.82rem; font-weight:700; width:24px;">#${idx + 1}</span>
-          <input type="color" id="courseColor_${course.id}" value="${course.color}" aria-label="Course ${idx + 1} Color" />
-          <input type="text" id="courseName_${course.id}" value="${escapeHtml(course.name)}" placeholder="Course ${idx + 1}" required />
-        </div>
-      `).join("");
-
-      document.getElementById("coursesModalBackdrop").classList.add("open");
-    }
-
-    function closeCoursesModal() {
-      document.getElementById("coursesModalBackdrop").classList.remove("open");
-    }
-
-    function handleCoursesFormSubmit(e) {
-      e.preventDefault();
-      state.courses.forEach((course, idx) => {
-        const nameInput = document.getElementById(`courseName_${course.id}`);
-        const colorInput = document.getElementById(`courseColor_${course.id}`);
-        const newName = nameInput ? nameInput.value.trim() : "";
-        course.name = newName || `Course ${idx + 1}`;
-        if (colorInput && colorInput.value) {
-          course.color = colorInput.value;
-        }
-      });
-
-      saveStateToStorage();
-      closeCoursesModal();
-      renderAll();
-    }
-
-    function exportDataAsJson() {
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        theme: state.theme,
-        courses: state.courses,
-        homework: state.homework
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `homework-backup-${formatDateToInput(getTodayLocal())}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function importDataFromJson(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!Array.isArray(data.courses) || data.courses.length !== 7 || !Array.isArray(data.homework)) {
-            alert("Invalid backup file format. Please select a valid Homework Tracker JSON export.");
-            return;
-          }
-          state.courses = data.courses;
-          state.homework = data.homework;
-          if (data.theme === "dark" || data.theme === "light") {
-            state.theme = data.theme;
-          }
-          applyTheme();
-          saveStateToStorage();
-          renderAll();
-          alert("Backup data imported and synced to cloud!");
-        } catch (err) {
-          alert("Could not parse the JSON file. Please verify the file is not corrupted.");
-        } finally {
-          event.target.value = "";
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function initApp() {
-      loadStateFromStorage();
-      applyTheme();
-      renderAll();
-
-      document.getElementById("openAddHwBtn").addEventListener("click", () => openAddHomeworkModal());
-      document.getElementById("openCoursesModalBtn").addEventListener("click", openCoursesModal);
-      document.getElementById("themeToggleBtn").addEventListener("click", toggleTheme);
-      document.getElementById("exportDataBtn").addEventListener("click", exportDataAsJson);
-      document.getElementById("importDataBtn").addEventListener("click", () => {
-        document.getElementById("importFileInput").click();
-      });
-      document.getElementById("importFileInput").addEventListener("change", importDataFromJson);
-      document.getElementById("resetCourseViewBtn").addEventListener("click", () => selectCourseTab("ALL"));
-
-      document.getElementById("filterCourseSelect").addEventListener("change", e => {
-        selectCourseTab(e.target.value);
-      });
-      document.getElementById("filterStatusSelect").addEventListener("change", e => {
-        state.ui.filterStatus = e.target.value;
-        renderCoursesGrid();
-      });
-      document.getElementById("sortBySelect").addEventListener("change", e => {
-        state.ui.sortBy = e.target.value;
-        renderCoursesGrid();
-      });
-      document.getElementById("searchHwInput").addEventListener("input", e => {
-        state.ui.searchQuery = e.target.value;
-        renderCoursesGrid();
-      });
-
-      document.getElementById("prevWeekBtn").addEventListener("click", () => {
-        state.ui.weekOffset -= 1;
-        renderCalendarAndSchedule();
-      });
-      document.getElementById("thisWeekBtn").addEventListener("click", () => {
-        state.ui.weekOffset = 0;
-        renderCalendarAndSchedule();
-      });
-      document.getElementById("nextWeekBtn").addEventListener("click", () => {
-        state.ui.weekOffset += 1;
-        renderCalendarAndSchedule();
-      });
-
-      document.getElementById("closeHwModalBtn").addEventListener("click", closeHomeworkModal);
-      document.getElementById("cancelHwModalBtn").addEventListener("click", closeHomeworkModal);
-      document.getElementById("hwForm").addEventListener("submit", handleHomeworkFormSubmit);
-
-      document.getElementById("closeCoursesModalBtn").addEventListener("click", closeCoursesModal);
-      document.getElementById("cancelCoursesModalBtn").addEventListener("click", closeCoursesModal);
-      document.getElementById("coursesForm").addEventListener("submit", handleCoursesFormSubmit);
-
-      document.getElementById("hwModalBackdrop").addEventListener("click", e => {
-        if (e.target.id === "hwModalBackdrop") closeHomeworkModal();
-      });
-      document.getElementById("coursesModalBackdrop").addEventListener("click", e => {
-        if (e.target.id === "coursesModalBackdrop") closeCoursesModal();
-      });
-      window.addEventListener("keydown", e => {
-        if (e.key === "Escape") {
-          closeHomeworkModal();
-          closeCoursesModal();
-        }
-      });
-    }
-
-    document.addEventListener("DOMContentLoaded", initApp);
-  </script>
-
-  <!-- ========================================================================
-       FIREBASE CLOUD FIRESTORE REAL-TIME SYNC (v13.1.0)
-       ======================================================================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
-
-    const firebaseConfig = {
+    const app = initializeApp({
       apiKey: "AIzaSyBwVk_6M8XlbBCammfSRPf-qrTYlcQZ_vE",
       authDomain: "uni-homework-tracker.firebaseapp.com",
       projectId: "uni-homework-tracker",
@@ -2014,82 +755,41 @@
       messagingSenderId: "710543230892",
       appId: "1:710543230892:web:f44ae37da3250aacfb1c09",
       measurementId: "G-PTXZHXEY98"
-    };
-
-    // Document ID used to sync across your devices (must match your Firestore Rules)
-    const SECRET_SYNC_ID = "my_uni_tracker_2026_secret";
-
-    const app = initializeApp(firebaseConfig);
+    });
     const db = getFirestore(app);
-    const trackerDocRef = doc(db, "homeworkTrackers", SECRET_SYNC_ID);
+    const ref = doc(db, "homeworkTrackers", "my_uni_tracker_2026_secret");
 
-    const badgeEl = document.getElementById("syncStatusBadge");
-    const badgeTextEl = document.getElementById("syncStatusText");
-    let isApplyingRemoteUpdate = false;
-
-    function updateSyncBadge(status, label) {
-      if (!badgeEl || !badgeTextEl) return;
-      badgeEl.classList.remove("synced", "syncing", "error");
-      if (status) badgeEl.classList.add(status);
-      badgeTextEl.textContent = label;
-    }
-
-    // Push local state changes to Firestore
-    window.pushStateToCloud = async function () {
-      if (isApplyingRemoteUpdate) return;
-      updateSyncBadge("syncing", "Syncing...");
+    window.pushStateToCloud = async () => {
+      setBadge("syncing", "Syncing...");
       try {
-        await setDoc(trackerDocRef, {
-          theme: state.theme,
-          courses: state.courses,
-          homework: state.homework,
-          updatedAt: new Date().toISOString()
-        });
-        updateSyncBadge("synced", "Cloud Synced");
+        const s = window.getTrackerState();
+        await setDoc(ref, { courses: s.courses, homework: s.homework, updatedAt: new Date().toISOString() });
+        setBadge("synced", "Cloud synced");
       } catch (err) {
-        console.error("Failed to push to Firestore:", err);
-        updateSyncBadge("error", "Offline / Check Rules");
+        console.error("Push failed:", err);
+        setBadge("error", "Offline / check rules");
       }
     };
 
-    // Listen for live updates from Firestore
-    onSnapshot(
-      trackerDocRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const remoteData = snapshot.data();
-          isApplyingRemoteUpdate = true;
-
-          if (Array.isArray(remoteData.courses) && remoteData.courses.length === 7) {
-            state.courses = remoteData.courses;
-          }
-          if (Array.isArray(remoteData.homework)) {
-            state.homework = remoteData.homework;
-          }
-          if (remoteData.theme === "dark" || remoteData.theme === "light") {
-            state.theme = remoteData.theme;
-          }
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            theme: state.theme,
-            courses: state.courses,
-            homework: state.homework
-          }));
-          applyTheme();
-          renderAll();
-
-          isApplyingRemoteUpdate = false;
-          updateSyncBadge("synced", "Cloud Synced");
-        } else {
-          // First time connecting: create the cloud document with current local data
-          window.pushStateToCloud();
-        }
-      },
-      (error) => {
-        console.error("Firestore real-time listener error:", error);
-        updateSyncBadge("error", "Offline / Check Rules");
+    let first = true;
+    onSnapshot(ref, (snap) => {
+      // ignore echoes of our own pending writes
+      if (snap.metadata.hasPendingWrites) return;
+      if (snap.exists()) {
+        window.applyRemoteState(snap.data());
+        setBadge("synced", "Cloud synced");
+      } else if (first) {
+        window.pushStateToCloud(); // first run: upload local data
       }
-    );
-  </script>
+      first = false;
+    }, (err) => {
+      console.error("Listener error:", err);
+      setBadge("error", "Offline / check rules");
+    });
+  } catch (err) {
+    console.error("Firebase failed to load:", err);
+    setBadge("error", "Local only (no cloud)");
+  }
+</script>
 </body>
 </html>
